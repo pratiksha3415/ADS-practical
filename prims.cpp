@@ -1,68 +1,75 @@
-#include <iostream>
-#include <vector>
+#include<iostream>
 using namespace std;
-#define INF 99999
-int minEdgeVertex(int key[], bool visited[], int n) {
-    int minValue = INF;
-    int minVertex = 0;
-    for (int i = 0; i < n; i++) {
-        if (visited[i] == false && key[i] < minValue) {
-            minValue = key[i];
-            minVertex = i;
+
+const int INF = 9999;
+
+void print(int** graph, int* parent, int n){
+    cout << "Edge\tWeight\n";
+    for(int i=1; i<n; i++){
+        cout << parent[i] << "-" << i << "\t" << graph[parent[i]][i] << endl;
+    }
+}
+
+int minKey(int* key, bool* mst, int n){
+    int min=INF;
+    int minIdx;
+    for(int i=0; i<n; i++){
+        if(!mst[i] && key[i]<min){
+            min = key[i];
+            minIdx = i;
         }
     }
-    return minVertex;
+    return minIdx;
 }
-void primMST(int** graph, int n) {
-    bool visited[n];
-    int cost[n];
-    int path[n];
-    for (int i = 0; i < n; i++) {
-        cost[i] = INF;
-        visited[i] = false;
+
+void prims(int** graph, int n){
+    int* parent = new int[n];
+    int* key = new int[n];
+    bool* mst = new bool[n];
+
+    for(int i=0; i<n; i++){
+        key[i] = INF;
+        mst[i] = false;
     }
-    visited[0] = true;
-    cost[0] = 0;
-    path[0] = -1;
-    cout << "Starting from vertex 0" << endl;
-    int count = n - 1;
-    while (count > 0) {
-        int current = minEdgeVertex(cost, visited, n);
-        visited[current] = true;
-        for (int i = 0; i < n; i++) {
-            if (visited[i] == false && graph[current][i] < cost[i]) {
-                cost[i] = graph[current][i];
-                path[i] = current;
+
+    parent[0] = -1;
+    key[0] = 0;
+
+    for(int i=0; i<n; i++){
+        int u = minKey(key, mst, n);
+        mst[u] = true;
+
+        for(int j=0; j<n; j++){
+            if(graph[u][j] && !mst[j] && graph[u][j] < key[j]){
+                parent[j] = u;
+                key[j] = graph[u][j];
             }
         }
-        cout << "Visited vertex " << current << " having minimum weight: " << cost[current] << endl;
-        count--;
     }
+    print(graph, parent, n);
 }
-int main() {
-    int n;
-    cout << "Enter the number of vertices: ";
-    cin >> n;
+
+int main(){
+    int n=6;
+    // cout << "Enter no. of vertex: ";
+    // cin >> n;
+
+    int temp[6][6]={
+        {0, 3, 0, 0, 4, 7},
+        {3, 0, 5, 0, 0, 8},
+        {0, 5, 0, 4, 0, 6},
+        {0, 0, 4, 0, 2, 8},
+        {4, 0, 0, 2, 0, 5},
+        {7, 8, 6, 8, 5, 0}
+    };
+
     int** graph = new int*[n];
-    for (int i = 0; i < n; i++) {
+    for(int i=0; i<n; i++){
         graph[i] = new int[n];
-    }
-    int input = -1;
-    cout << "Enter the adjacency matrix (use -1 for no direct path):\n";
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            cout << "Enter edge weight from vertex " << i << " to vertex " << j << ": ";
-            cin >> input;
-            if (input == -1) {
-                input = INF;
-            }
-            graph[i][j] = input;
+        for(int j=0; j<n; j++){
+            graph[i][j] = temp[i][j];
         }
     }
-    primMST(graph, n);
-    for (int i = 0; i < n; i++) {
-        delete[] graph[i];
-    }
-    delete[] graph;
-    return 0;
+
+    prims(graph, n);
 }

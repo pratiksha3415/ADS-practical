@@ -23,12 +23,14 @@ Node* constructExpTree(string exp) {
     for (int i = 0; i < exp.length(); i++) {
         if (isOperator(exp[i])) {
             node = new Node();
-            node->data = exp[i]; // Create operator node
-            node->left = st.top();
-            st.pop();
-            node->right = st.top();
-            st.pop();
-            // Push new node on top of stack
+            node->data = exp[i];
+
+            Node* right = st.top(); st.pop();
+            Node* left = st.top(); st.pop();
+
+            node->left = left;
+            node->right = right;
+
             st.push(node);
         } else {
             node = new Node();
@@ -38,6 +40,7 @@ Node* constructExpTree(string exp) {
     }
     return st.top();
 }
+
 void inOrderTraversalRecursive(Node* root) {
     if (root == NULL) {
         return;

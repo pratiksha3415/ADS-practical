@@ -1,172 +1,165 @@
 #include <iostream>
+#include <string>
 using namespace std;
-class Node {
-    public:
-    int data;
-    Node* left;
-    Node* right;
-    Node() {
-        data = 0;
+
+class node {
+public:
+    string keyword;
+    string meaning;
+    node* left;
+    node* right;
+
+    node(string key, string val) {
+        keyword = key;
+        meaning = val;
         left = right = NULL;
     }
 };
-void create(Node*& root, int value) {
-    Node* temp = new Node;
-    temp->data = value;
-    temp->left = temp->right = NULL;
-    if (root == NULL) {
-        cout << "Inserted " << value << " at root." << endl;
-        root = temp;
-    } else {
-        Node* current = root;
-        while (current != NULL) {
-            if (current->data > value) {
-                if (current->left == NULL) {
-                    cout << "Inserted " << value << " to left of " << current->data << endl;
-                    current->left = temp;
-                    return;
-                }
-                current = current->left;
-            } else {
-                if (current->right == NULL) {
-                    cout << "Inserted " << value << " to right of " << current->data << endl;
-                    current->right = temp;
-                    return;
-                }
-                current = current->right;
-            }
-        }
-    }
-}
-void update(Node*& root, int oldValue, int newValue) {
-    if (root->data == oldValue) {
-        root->data = newValue;
-    } else {
-        Node* current = root;
-        while (current != NULL) {
-            if (current->data == oldValue) {
-                current->data = newValue;
-                return;
-            } else if (current->data > oldValue) {
-                current = current->left;
-            } else {
-                current = current->right;
-            }
-        }
-        cout << "Old value not found" << endl;
-    }
-}
-void deleteNode(Node*& root, int value) {
-    if (root->data == value) {
-        delete root;
+
+class Dictionary {
+public:
+    node* root;
+    Dictionary() {
         root = NULL;
-    } else {
-        Node* current = root, *prev = root;
-        while (current != NULL) {
-            if (current->data == value) {
-                // To delete node pointed by current
-                if (current->left == NULL) {
-                    if (current->right == NULL) {
-                        if (prev->left == current) {
-                            prev->left = NULL;
-                        } else {
-                            prev->right = NULL;
-                        }
-                        delete current;
-                    } else {
-                        current->data = current->right->data;
-                        delete current->right;
-                    }
-                } else {
-                    if (current->right == NULL) {
-                        current->data = current->left->data;
-                        delete current->left;
-                    } else {
-                        cout << "Inorder successor." << endl;
-                    }
-                }
-                return;
-            } else if (current->data > value) {
-                prev = current;
-                current = current->left;
+    }
+
+    node* insert(node* root, string key, string val) {
+        if (!root) return new node(key, val);
+        if (key < root->keyword)
+            root->left = insert(root->left, key, val);
+        else if (key > root->keyword)
+            root->right = insert(root->right, key, val);
+        else
+            cout << "Keyword already exists!\n";
+        return root;
+    }
+
+    void inorder(node* root) {
+        if (!root) return;
+        inorder(root->left);
+        cout << root->keyword << " : " << root->meaning << endl;
+        inorder(root->right);
+    }
+
+    void reverseInorder(node* root) {
+        if (!root) return;
+        reverseInorder(root->right);
+        cout << root->keyword << " : " << root->meaning << endl;
+        reverseInorder(root->left);
+    }
+
+    node* search(node* root, string key, int& comparisons) {
+        comparisons++;
+        if (!root) return NULL;
+        if (root->keyword == key) return root;
+        else if (key < root->keyword)
+            return search(root->left, key, comparisons);
+        else
+            return search(root->right, key, comparisons);
+    }
+
+    node* findMin(node* root) {
+        while (root->left) root = root->left;
+        return root;
+    }
+
+    node* deleteNode(node* root, string key) {
+        if (!root) return NULL;
+        if (key < root->keyword)
+            root->left = deleteNode(root->left, key);
+        else if (key > root->keyword)
+            root->right = deleteNode(root->right, key);
+        else {
+            if (!root->left && !root->right) {
+                delete root;
+                return NULL;
+            } else if (!root->left || !root->right) {
+                node* temp = root->left ? root->left : root->right;
+                delete root;
+                return temp;
             } else {
-                prev = current;
-                current = current->right;
+                node* succ = findMin(root->right);
+                root->keyword = succ->keyword;
+                root->meaning = succ->meaning;
+                root->right = deleteNode(root->right, succ->keyword);
             }
         }
-        cout << "Old value not found" << endl;
+        return root;
     }
-}
-void recursiveDisplay(Node*& node) {
-    if (node == NULL) {
-        return;
-    } else {
-        recursiveDisplay(node->left);
-        cout << node->data << " ";
-        recursiveDisplay(node->right);
-    }
-}
-void display(Node*& root) {
-    if (root == NULL) {
-        cout << "Binary search tree is empty." << endl;
-        return;
-    } else {
-        cout << "Binary search tree is: ";
-        recursiveDisplay(root->left);
-        cout << root->data << " ";
-        recursiveDisplay(root->right);
-    }
-    cout << endl;
-}
+};
+
 int main() {
-    int n, x;
-    cout << "Enter how many numbers: ";
-    cin >> n;
-    int i = 0;
-    Node* root = NULL;
-    while (i < n) {
-        cout << "Enter value " << (i + 1) << ": ";
-        cin >> x;
-        create(root, x);
-        i++;
-    }
+    Dictionary dict;
     int choice;
+
     do {
-        cout << "1. Insert new value\n2. Update a value\n3. Delete a value\n4. Display all values\n5. Exit\n";
+        cout << "\nDictionary Menu:\n";
+        cout << "1. Add Keyword\n2. Display (Ascending)\n3. Display (Descending)\n4. Search Keyword\n5. Update Meaning\n6. Delete Keyword\n0. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
         switch (choice) {
             case 1: {
-                cout << "Enter value to insert: ";
-                cin >> x;
-                create(root, x);
+                string key, val;
+                cout << "Enter keyword: ";
+                cin >> key;
+                cout << "Enter meaning: ";
+                cin.ignore();
+                getline(cin, val);
+                dict.root = dict.insert(dict.root, key, val);
                 break;
             }
-            case 2: {
-                int oldValue, newValue;
-                cout << "Enter old value: ";
-                cin >> oldValue;
-                cout << "Enter new value: ";
-                cin >> newValue;
-                update(root, oldValue, newValue);
+            case 2: { 
+                cout << "\nDictionary in Ascending Order:\n";
+                dict.inorder(dict.root);
                 break;
             }
-            case 3: {
-                cout << "Enter value to delete: ";
-                cin >> x;
-                deleteNode(root, x);
+            case 3: { 
+                cout << "\nDictionary in Descending Order:\n";
+                dict.reverseInorder(dict.root);
                 break;
             }
-            case 4: {
-                cout << "All nodes in binary search tree: ";
-                display(root);
-                break;
+            case 4: { 
+                string key;
+                cout << "Enter keyword to search: ";
+                cin >> key;
+                int comparisons = 0;
+                node* result = dict.search(dict.root, key, comparisons);
+                if (result)
+                    cout << "Found! Meaning: " << result->meaning << "\nComparisons: " << comparisons << endl;
+                else
+                    cout << "Keyword not found!\nComparisons: " << comparisons << endl;
+                    break;
             }
             case 5: {
-                cout << "Exiting the program" << endl;
+                string key, newMeaning;
+                cout << "Enter keyword to update: ";
+                cin >> key;
+                int comparisons = 0;
+                node* res = dict.search(dict.root, key, comparisons);
+                if (res) {
+                    cout << "Current Meaning: " << res->meaning << endl;
+                    cout << "Enter new meaning: ";
+                    cin.ignore();
+                    getline(cin, newMeaning);
+                    res->meaning = newMeaning;
+                    cout << "Updated successfully.\n";
+                } else {
+                    cout << "Keyword not found.\n";
+                }
                 break;
             }
+            case 6: {
+                string key;
+                cout << "Enter keyword to delete: ";
+                cin >> key;
+                dict.root = dict.deleteNode(dict.root, key);
+                cout << "Deleted successfully (if existed).\n";
+                break;
+            }
+            case 0: cout << "Exiting...\n"; break;
+            default: cout << "Invalid option.\n";
         }
-    } while (choice != 5);
+    } while (choice != 0);
+
     return 0;
 }

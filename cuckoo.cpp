@@ -1,80 +1,72 @@
-#include <iostream>
-#include <climits>
+#include<iostream>
 using namespace std;
 
-const int VER = 2; // Number of hash tables
-int MAXN; // Size of the hash table
-int hashtable[VER][100]; // Hash table with multiple slots
-int pos[VER]; // Stores the positions for hash table entries
+const int r=2;
+int m;
+int hashArr[r][20];
+int pos[r];
 
-void initTable() {
-    for (int i = 0; i < VER; i++)
-        for (int j = 0; j < MAXN; j++)
-            hashtable[i][j] = INT_MIN; // Initialize all slots to INT_MIN (empty)
-}
-
-int hashFunction(int function, int key) {
-    if (function == 1) 
-        return key % MAXN; // First hash function: modulus operation
-    else 
-        return (key / MAXN) % MAXN; // Second hash function: division-based modulus operation
-}
-
-void place(int key, int tableID, int count, int maxAttempts) {
-    if (count >= maxAttempts) {
-        cout << "Cycle detected for key " << key << ". Rehash required!" << endl;
-        return;
-    }
-    for (int i = 0; i < VER; i++)
-        pos[i] = hashFunction(i + 1, key); // Calculate hash positions
-
-    for (int i = 0; i < VER; i++) {
-        if (hashtable[i][pos[i]] == key) return; // Check if the key is already present
-    }
-
-    if (hashtable[tableID][pos[tableID]] != INT_MIN) { // If slot is occupied
-        int displacedKey = hashtable[tableID][pos[tableID]];
-        hashtable[tableID][pos[tableID]] = key; // Place the new key
-        place(displacedKey, (tableID + 1) % VER, count + 1, maxAttempts); // Rehash the displaced key
-    } else {
-        hashtable[tableID][pos[tableID]] = key; // Place the key in the table
+void initialize(){
+    for(int i=0; i<r; i++){
+        for(int j=0; j<m; j++){
+            hashArr[i][j] == -1;
+        }
     }
 }
 
-void printTable() {
-    cout << "Hash Tables:" << endl;
-    for (int i = 0; i < VER; i++) {
-        for (int j = 0; j < MAXN; j++) {
-            if (hashtable[i][j] == INT_MIN)
-                cout << "- "; // Empty slot
-            else
-                cout << hashtable[i][j] << " "; // Print key
+int hashFunc(int key, int i){
+    if(i==0) return key%m;
+    return (key/m) % m;
+}
+
+void Place(int key, int cnt, int idx, int n){
+    if(cnt>=n){
+        cout << "cycle completed... rehash required";
+    }
+
+    for(int i=0; i<r; i++){
+        pos[i] = hashFunc(key, i);
+    }
+    for(int i=0; i<r; i++){
+        if(hashArr[i][pos[i]] == key) return;
+    }
+
+    if(hashArr[idx][pos[idx]] != -1){
+        int temp = hashArr[idx][pos[idx]];
+        hashArr[idx][pos[idx]] = key;
+        Place(temp, cnt+1, (idx+1)%r, n);
+    }else{
+        hashArr[idx][pos[idx]] = key;
+    }
+}
+
+void printHash(){
+    for(int i=0; i<r; i++){
+        for(int j=0; j<m; j++){
+            cout << hashArr[i][j] << " ";
         }
         cout << endl;
     }
 }
 
-void cuckooHashing(int keys[], int n) {
-    initTable();
-    for (int i = 0; i < n; i++) {
-        place(keys[i], 0, 0, n); // Insert keys into the hash table
-    }
-    printTable(); // Print the hash table after insertion
-}
-
-int main() {
-    cout << "Enter the number of keys: ";
-    int n;
+int main(){
+    int n; 
+    cout << "Enter no.: ";
     cin >> n;
-    MAXN = n; // Set MAXN to the number of keys
-    int keys[n]; // Array to hold the keys
+    m=n;
 
-    cout << "Enter the keys:" << endl;
-    for (int i = 0; i < n; i++) {
-        cin >> keys[i]; // Read keys from the user
+    int arr[n];
+    cout << "Enter elements of array:" << endl;
+    for(int i=0; i<n; i++){
+        cin >> arr[i];
     }
 
-    cuckooHashing(keys, n); // Perform cuckoo hashing with the input keys
+    initialize();
+    for(int i=0; i<n; i++){
+        Place(arr[i], 0, 0, n);
+    }
+
+    printHash();
 
     return 0;
 }
